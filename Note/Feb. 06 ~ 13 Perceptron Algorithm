@@ -1,0 +1,39 @@
+Feb. 6
+
+Examples
+1st Assignment: Perceptron Algorithm
+Supervised Machine Learning
+Binary Classification (labelling) of sample data
+The first 4000 emails of Data Set (spam_train.txt) will be used for training
+
+Preprocessing:
+Lowercasify
+stemming (words of same root word are converted)
+Remove punctuations
+
+First word of each email 1 if spam, 0 if not or vice versa
+Here, "features" are words. Put all features into python list of size n (no repetitions)
+Create a "feature vector" x^(i)_j = 1 if jth word of the list exists in given ith email, 0 if not. (input)
+(Though not the case of this assignment, x_j can be the number of occurrences)
+This vector lost punctuation and the order of words but it is good enough data. 
+
+Find the "label" y^(i) of ith email = +1 if spam, -1 if not spam. (kinda like output, similar to f(x) but used as input for training)
+m is number of emails (size of training set)
+n is total number of words we consider (number of features)
+
+Use x^i and y^i to "train model"
+obtain f(x) as predictor for arbitrary email x (output, conclusion)
+
+Model f_w(x) is the function, defined by parameter vector w, that maps the vector x to a real number.
+Linear Model is f_w(x) = w·x
+
+(Linear algebra recap)
+
+Add the bias by inserting x_0 = 1
+
+W in a linear model represents a separating hyperplane.
+To be able to define a linear model, the data has to be linearly separable.
+
+correctly classified if y(i)(w · x^(i)) > 0
+
+14 passes, 50 features
