@@ -1,0 +1,11 @@
+Model f_w(x) is the function, defined by parameter vector w, that maps the vector x to a real number.
+Linear Model is f_w(x) = w·x
+
+(Linear algebra recap)
+
+Add the bias by inserting x_0 = 1
+
+W in a linear model represents a separating hyperplane.
+To be able to define a linear model, the data has to be linearly separable.
+
+correctly classified if y(i)(w · x^(i)) > 0
