@@ -23,15 +23,15 @@ def scal_vec(n, A):
 	return list(map(mul, repeat(n), A))
 
 def all_indices(value, qlist):
-    indices = []
-    idx = -1
-    while True:
-        try:
-            idx = qlist.index(value, idx+1)
-            indices.append(idx)
-        except ValueError:
-            break
-    return indices
+	indices = []
+	idx = -1
+	while True:
+		try:
+			idx = qlist.index(value, idx+1)
+			indices.append(idx)
+		except ValueError:
+			break
+	return indices
 
 
 class Perceptron():
@@ -41,14 +41,52 @@ class Perceptron():
 	in the data are not counted as features.
 
 	"""
-	def __init__(self, training_data_file, threshold, debug):
+	def __init__(self, training_data_origin, training_size, threshold, debug):
 		print("Perceptrons! Roll out!")
+		self.training_data_origin = training_data_origin
+		self.training_size = training_size
 		self.threshold = threshold
-		self.training_data_file = training_data_file
 		self.debug = debug
+
+		self.filename_train = ''
+		self.filename_validation = ''
+		self.filename_test = ''
+
 		self.features = [] # list of features in consideration
 		self.feature_vector_list = [] # list of feature vectors of each email
 		self.label_list = [] # list of labels for each email
+
+	def preprocess(self):
+		"""cuts training data into training_size training data and the rest into a validation set"""
+		filename_train = "train_N" + str(self.training_size) + ".txt"
+		filename_validation = "validation_N" + str(self.training_size) + ".txt"
+
+		if path.isfile(filename_train) and path.isfile(filename_validation):
+			print("training and validation set found for N =", self.training_size)
+			self.filename_train = filename_train
+			self.filename_validation = filename_validation
+			return
+
+		def find_nth(haystack, needle, n):
+			start = haystack.find(needle)
+			while start >= 0 and n > 1:
+				start = haystack.find(needle, start+len(needle))
+				n -= 1
+			return start
+
+		data = open(self.training_data_origin, "r")
+		text = data.read()
+		index = find_nth(text, '\n', self.training_size)
+
+		train = open(filename_train, "w")
+		train.write(text[:index+1])
+		train.close()
+
+		validation = open(filename_validation, "w")
+		validation.write(text[index+1:])
+		validation.close()
+
+		data.close()
 
 	def words(self, data, X):
 		"""creates a list of words that occur in at least X emails"""
@@ -101,7 +139,7 @@ class Perceptron():
 		print("====== Check feature_vector(email) start ======")
 		print("feature vector for one email: ")
 		print(self.test_feature_vector)
-		data = open(self.training_data_file, "r")
+		data = open(self.filename_train, "r")
 		email = data.readline()
 		print(email)
 		email = email.split()
@@ -121,7 +159,7 @@ class Perceptron():
 
 	def compute_feature_vector_all(self, data):
 		"""updates the list of all feature vectors for given data"""
-		filename = "output_data_"+ self.training_data_file + "_" + str(self.threshold) + ".csv"
+		filename = "output_data_"+ str(self.training_size) + "_" + str(self.threshold) + ".csv"
 		if path.isfile(filename):
 			self.feature_vector_list = self.ctol(self.threshold, filename)
 			return
@@ -209,11 +247,12 @@ class Perceptron():
 
 def main():
 	# Create a perceptron of filename, threshold, and debug option
-	p = Perceptron("train.txt", 19, False)
-	data = open(p.training_data_file, "r")
+	p = Perceptron("train.txt", 4000, 19, False)
+	p.preprocess()
 
 	# 1a) open training data and load significant features into features
 	# data.seek(0)
+	data = open(p.filename_train, "r")
 	p.features = p.words(data, p.threshold)
 	if p.debug: p.check_words()
 
