@@ -1,26 +1,13 @@
-from operator import mul, add
-from itertools import repeat
 from os import path
 from heapq import nlargest, nsmallest
 import numpy as np
+from re import search
 
 '''To do list
-switch to numpy
 implement CLI
 
 '''
 
-def dot_vec(A, B):
-	"""dot product of two same length array that are elementwise multiplicable"""
-	return sum(map(mul, A, B))
-
-def add_vec(A, B):
-	"""elementwise addition of two arrays of same length"""
-	return list(map(add, A, B))
-
-def scal_vec(n, A):
-	"""scalar multiplication of A by n"""
-	return list(map(mul, repeat(n), A))
 
 def all_indices(value, qlist):
 	indices = []
@@ -41,11 +28,12 @@ class Perceptron():
 	in the data are not counted as features.
 
 	"""
-	def __init__(self, training_data_origin, training_size, threshold, debug):
+	def __init__(self, training_data_origin, training_size, threshold, iter_limit, debug):
 		print("Perceptrons! Roll out!")
 		self.training_data_origin = training_data_origin
 		self.training_size = training_size
 		self.threshold = threshold
+		self.iter_limit = iter_limit
 		self.debug = debug
 
 		self.filename_train = ''
@@ -87,6 +75,9 @@ class Perceptron():
 		validation.close()
 
 		data.close()
+
+		self.filename_train = filename_train
+		self.filename_validation = filename_validation
 
 	def words(self, data, X):
 		"""creates a list of words that occur in at least X emails"""
@@ -159,31 +150,33 @@ class Perceptron():
 
 	def compute_feature_vector_all(self, data):
 		"""updates the list of all feature vectors for given data"""
-		filename = "output_data_"+ str(self.training_size) + "_" + str(self.threshold) + ".csv"
+		filename = search(r"name='(.+)' mode", str(data)).group(1)
+		filename += "_"+ str(self.training_size) + "_" + str(self.threshold) + ".csv"
 		if path.isfile(filename):
-			self.feature_vector_list = self.ctol(self.threshold, filename)
-			return
+			return self.ctol(self.threshold, filename)
 
-		print("computing feature vectors")
+		print("computing feature vectors for", filename)
 		data.seek(0)
-		self.feature_vector_list = []
+		# self.feature_vector_list = []
+		feature_vector_list = []
 		count = 0
 		for email in data:
 			count += 1
 			if count % 200 == 0: print(count, "times looped")
-			self.feature_vector_list.append(self.feature_vector(email))
-		self.ltoc(self.feature_vector_list, self.threshold, filename)
-		return
+			feature_vector_list.append(self.feature_vector(email))
+		self.ltoc(feature_vector_list, self.threshold, filename)
+		return feature_vector_list
 
 	def compute_label_all(self, data):
 		"""updates list of labels for given data. assumes label is the first digit"""
 		data.seek(0)
 		print("saving labels")
-		self.label_list = []
+		label_list = []
 		for email in data:
 			y = int(email[0]) * 2 - 1 # label of email, transform from [0,1] to [-1,1]
-			self.label_list.append(y)
-		if self.debug: print(self.label_list)
+			label_list.append(y)
+		if self.debug: print(label_list)
+		return label_list
 
 	def ltoc(self, list, threshold, filename):
 		"""saves a csv from a list of list"""
@@ -204,21 +197,22 @@ class Perceptron():
 		for line in csv:
 			inner_list = list(map(int, line.strip().split(',')))
 			listoflist.append(inner_list)
+		csv.close()
 		return listoflist
 
 	def perceptron_train(self, data):
 		"""trains perceptron and returns weight, mistakes, and iteration count. Assumes linear separability"""
 		data.seek(0)
-		self.compute_feature_vector_all(data)
+		self.feature_vector_list = self.compute_feature_vector_all(data)
 		data.seek(0)
-		self.compute_label_all(data)
+		self.label_list = self.compute_label_all(data)
 		n = len(self.feature_vector_list[0])
 		w = np.zeros(n) # initialize  w as a zero vector
 		k = 0 # number of mistakes
 		iter = 0 # number of passes
 
 		linearly_separated = False
-		while (not linearly_separated) and iter < 40 :
+		while (not linearly_separated) and iter < self.iter_limit :
 			iter += 1
 			linearly_separated = True
 			for i in range(n):
@@ -238,48 +232,76 @@ class Perceptron():
 		print("completed training with", iter, "iterations and", k, "mistakes")
 		return w, k, iter
 
-	def perceptron_error(self, w, data):
+	def perceptron_error(self, w, test_set):
 		"""calculates the error rate, i.e., the fraction of examples that are misclassified by w"""
+		#test_set called using p.filename_validation or a test file.
+		data = open(test_set, "r")
+		data.seek(0)
+		feature_vector_list = self.compute_feature_vector_all(data)
+		data.seek(0)
+		label_list = self.compute_label_all(data)
+		n = len(feature_vector_list[0])
+		k = 0
 
-		pass
+			for i in range(n):
+				x = np.array(feature_vector_list[i])
+				y = label_list[i]
+				if y * np.dot(w, x) > 0:
+					pass # w = w
+				else:
+					k += 1
+		print(k, "misclassified out of", n, "emails. Error rate:", 100*k/n, "%")
+		data.close()
+		return k/n
 
 
 
 def main():
-	# Create a perceptron of filename, threshold, and debug option
-	p = Perceptron("train.txt", 4000, 19, False)
+	# Create a perceptron of filename, N, threshold, iteration limit and debug option
+	p = Perceptron("spam_train.txt", 4000, 18, 40, False)
 	p.preprocess()
 
 	# 1a) open training data and load significant features into features
-	# data.seek(0)
 	data = open(p.filename_train, "r")
 	p.features = p.words(data, p.threshold)
 	if p.debug: p.check_words()
 
 	# 1b) open training data and create feature vector for each and save them in a list
-	data.seek(0)
-	p.test_feature_vector = p.feature_vector(data.readline()) # one sample feature vector
-	if p.debug: p.check_feature_vector()
-	# data.seek(0)
-	# p.compute_feature_vector_all(data)
+	# p.compute_feature_vector_all(data) # this line is commented out because it is done in 2a
+	if p.debug: 
+		data.seek(0)
+		p.test_feature_vector = p.feature_vector(data.readline()) # one sample feature vector
+		p.check_feature_vector()
 
-	# 3a) Implement the function perceptron_train(data)
-	# data.seek(0)
+	# 2a) Implement the function perceptron_train(data)
 	w, k, iter = p.perceptron_train(data)
-	# print(w)
+	if p.debug: print(w)
 
+	# 2b) Implement the function perceptron_error(w, data).
+	print("train", p.perceptron_error(p.filename_train))
+	print("validation", p.perceptron_error(p.filename_validation))
 
-	# 3b) Implement the function perceptron_error(w, data).
+	# 3) Validate on both training data and on validation data
 
-	# 4) test on validation.txt
-
-	# 5) most positive/negative features
-	significant = 14
+	# 4) 12 most positive/negative features
+	significant = 12
 	positive_weight = nlargest(significant, w)
 	print(positive_weight)
 	negative_weight = nsmallest(significant, w)
 	# print(nsmallest(14, w))
 
+	# 5) Plot validation error as a function of N (N = 100, 200, 400, 800, 2000, 4000)
+
+	# 6) Plot iter as a function of N (N = 100, 200, 400, 800, 2000, 4000)
+	
+	# 7) add an argument to limit the max number of passes
+
+	# 8) validation error for different configurations
+
+	# 9) If X = 1200, is it linearly separable? how many features?
+
+	# 10) why separate training, validation, and test
+	data.close()
 
 if __name__ == "__main__":
 	main()
