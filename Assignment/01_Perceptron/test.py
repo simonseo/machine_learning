@@ -1,16 +1,21 @@
-def list_of_list_to_csv(list):
-	csv = open("output_data.csv", "w")
-	for inner_list in list:
-		string = ','.join(map(str, inner_list)) + '\n'
-		csv.write(string)
-	csv.close()
+import numpy as np
 
-def csv_to_list_of_list():
-	csv = open("output_data.csv", "a")
-	csv.close()
-	csv = open("output_data.csv", "r")
-	list = []
-	for line in csv:
-		inner_list = line.strip().split(',')
-		list.append(inner_list)
-	return list
+def pylist():
+	x = []
+	for i in range(100):
+		temp = []
+		for j in range(100):
+			temp.append(j)
+		x.append(temp)
+	# print(x)
+
+def numpylist():
+	x = np.zeros((1, 100))
+	for i in range(100):
+		temp = np.array([])
+		for j in range(100):
+			temp = np.append(temp, j)
+		x = np.append(x, [temp], 0)
+	x = np.delete(x, 0, 0)
+	# print(x)
+

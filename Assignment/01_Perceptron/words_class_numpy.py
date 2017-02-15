@@ -2,7 +2,7 @@ from operator import mul, add
 from itertools import repeat
 from os import path
 from heapq import nlargest, nsmallest
-import numpy
+import numpy as np
 
 '''To do list
 switch to numpy
@@ -174,24 +174,28 @@ class Perceptron():
 		self.compute_feature_vector_all(data)
 		data.seek(0)
 		self.compute_label_all(data)
-		n = len(self.feature_vector_list)
-		w = list(repeat(0, n)) # initialize  w as a zero vector
+		n = len(self.feature_vector_list[0])
+		w = np.zeros(n) # initialize  w as a zero vector
 		k = 0 # number of mistakes
 		iter = 0 # number of passes
 
 		linearly_separated = False
-		while (not linearly_separated) and iter < 30 :
+		while (not linearly_separated) and iter < 40 :
 			iter += 1
 			linearly_separated = True
 			for i in range(n):
-				x = self.feature_vector_list[i]
+				if iter == 1:
+					x = np.array(self.feature_vector_list[i])
+					self.feature_vector_list[i] = x
+				else:
+					x = self.feature_vector_list[i]
 				y = self.label_list[i]
-				if y * dot_vec(w, x) > 0:
+				if y * np.dot(w, x) > 0:
 					pass # w = w
 				else:
 					k += 1
 					linearly_separated = False
-					w = add_vec(w, scal_vec(y, x))
+					w = w + y * x
 			print(iter, "passes", k, "mistakes")
 		print("completed training with", iter, "iterations and", k, "mistakes")
 		return w, k, iter
@@ -205,7 +209,7 @@ class Perceptron():
 
 def main():
 	# Create a perceptron of filename, threshold, and debug option
-	p = Perceptron("train.txt", 21, False)
+	p = Perceptron("train.txt", 19, False)
 	data = open(p.training_data_file, "r")
 
 	# 1a) open training data and load significant features into features
