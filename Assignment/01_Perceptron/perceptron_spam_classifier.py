@@ -3,15 +3,6 @@ from heapq import nlargest, nsmallest
 import numpy as np
 from re import search
 
-'''To do list
-implement CLI
-greatest si
-'''
-
-
-
-
-
 class Perceptron():
 	"""implementation of the Perceptron algorithm for classifying spam emails
 
