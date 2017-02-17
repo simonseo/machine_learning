@@ -5,20 +5,11 @@ from re import search
 
 '''To do list
 implement CLI
-
+greatest si
 '''
 
 
-def all_indices(value, qlist):
-	indices = []
-	idx = -1
-	while True:
-		try:
-			idx = qlist.index(value, idx+1)
-			indices.append(idx)
-		except ValueError:
-			break
-	return indices
+
 
 
 class Perceptron():
@@ -86,7 +77,7 @@ class Perceptron():
 
 		for email in data:
 			email = email.split()
-			email.pop(0)  # remove label
+			if email[0] == '1' or email[0] == '0': email.pop(0)  # remove label
 			email = list(set(email)) # list of unique words
 			for word in email:
 				if word in word_occurrence.keys():
@@ -98,7 +89,7 @@ class Perceptron():
 		for key in word_occurrence.keys():
 			if word_occurrence[key] >= X:  # any words fewer than X is ignored
 				features.append(key)
-
+		features.sort()
 		return features
 
 	def check_words(self):
@@ -116,7 +107,7 @@ class Perceptron():
 		if not len(self.features) > 0: # if self.features is not defined
 			raise MyLookupException({"message":"variable has not been initiated", "variable":"self.features"})
 		email = email.split()
-		email.pop(0)  # remove label
+		if email[0] == '1' or email[0] == '0': email.pop(0)  # remove label
 		feature_vector = []
 		for word in self.features:
 			if word in email:
@@ -228,7 +219,7 @@ class Perceptron():
 					k += 1
 					linearly_separated = False
 					w = w + y * x
-			print(iter, "passes", k, "mistakes")
+			# print(iter, "passes", k, "mistakes")
 
 		print("completed training with", iter, "iterations and", k, "mistakes")
 		return w, k, iter
@@ -243,24 +234,58 @@ class Perceptron():
 		label_list = self.compute_label_all(data)
 		n = len(feature_vector_list) # number of emails
 		k = 0 # number of misclassifications
+		j = 0 # number of correct
 
 		for i in range(n):
 			x = np.array(feature_vector_list[i])
 			y = label_list[i]
 			classification = y * np.dot(w, x)
 			if classification > 0:
-				pass # classified correctly
+				j += 1
+				# pass # classified correctly
 			else:
 				k += 1
+		print(j, "correctly classified out of", n, "emails. Success rate:", 100*j/n, "%")
 		print(k, "misclassified out of", n, "emails. Error rate:", 100*k/n, "%")
 		data.close()
 		return k/n
 
+	def print_prominent_features(self, w, significant):
+		"""prints given number of significant features"""
+		def all_indices(value, qlist):
+			indices = []
+			idx = -1
+			while True:
+				try:
+					idx = qlist.index(value, idx+1)
+					indices.append(idx)
+				except ValueError:
+					break
+			return indices
+		positive_weight = nlargest(significant, w)
+		positive_weight = list(set(positive_weight))
+		positive_indices = []
+		for weight in positive_weight:
+			positive_indices += all_indices(weight, w.tolist())
+		print(positive_indices)
+		print("positive weights: ", end='')
+		for idx in positive_indices:
+			print(self.features[idx], end = ' ')
+		print()
 
+		negative_weight = nsmallest(significant, w)
+		negative_weight = list(set(negative_weight))
+		negative_indices = []
+		for weight in negative_weight:
+			negative_indices += all_indices(weight, w.tolist())
+		print("negative weights: ", end='')
+		for idx in negative_indices:
+			print(self.features[idx], end = ' ')
+		print()
 
 def main():
 	# Create a perceptron of filename, N, threshold, iteration limit and debug option
-	p = Perceptron("spam_train.txt", 4000, 17, 40, False)
+	p = Perceptron("spam_train.txt", 4000, 20, 40, False)
 	p.preprocess()
 
 	# 1a) open training data and load significant features into features
@@ -280,29 +305,14 @@ def main():
 	if p.debug: print(w)
 
 	# 2b) Implement the function perceptron_error(w, data).
-	print("train", p.perceptron_error(w, p.filename_train))
-	print("validation", p.perceptron_error(w, p.filename_validation))
-
 	# 3) Validate on both training data and on validation data
+	print("train", p.perceptron_error(w, p.filename_train)) # zero if a w that perfectly separates the training data is found
+	print("validation", p.perceptron_error(w, p.filename_validation))
+	# print("test", p.perceptron_error(w, "spam_test.txt"))
 
 	# 4) 12 most positive/negative features
-	significant = 12
-	positive_weight = nlargest(significant, w)
-	print(positive_weight)
-	negative_weight = nsmallest(significant, w)
-	# print(nsmallest(14, w))
+	p.print_prominent_features(w, 13)
 
-	# 5) Plot validation error as a function of N (N = 100, 200, 400, 800, 2000, 4000)
-
-	# 6) Plot iter as a function of N (N = 100, 200, 400, 800, 2000, 4000)
-	
-	# 7) add an argument to limit the max number of passes
-
-	# 8) validation error for different configurations
-
-	# 9) If X = 1200, is it linearly separable? how many features?
-
-	# 10) why separate training, validation, and test
 	data.close()
 
 if __name__ == "__main__":
