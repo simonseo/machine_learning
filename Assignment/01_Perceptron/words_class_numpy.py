@@ -206,29 +206,30 @@ class Perceptron():
 		self.feature_vector_list = self.compute_feature_vector_all(data)
 		data.seek(0)
 		self.label_list = self.compute_label_all(data)
-		n = len(self.feature_vector_list[0])
-		w = np.zeros(n) # initialize  w as a zero vector
+		n = len(self.feature_vector_list)
+		w = np.zeros(len(self.feature_vector_list[0])) # initialize  w as a zero vector
 		k = 0 # number of mistakes
 		iter = 0 # number of passes
+		for i in range(n):
+			self.feature_vector_list[i] = np.array(self.feature_vector_list[i]) # replace the feature vectors as numpy arrays
+
 
 		linearly_separated = False
 		while (not linearly_separated) and iter < self.iter_limit :
 			iter += 1
 			linearly_separated = True
 			for i in range(n):
-				if iter == 1:
-					x = np.array(self.feature_vector_list[i])
-					self.feature_vector_list[i] = x
-				else:
-					x = self.feature_vector_list[i]
+				x = self.feature_vector_list[i]
 				y = self.label_list[i]
-				if y * np.dot(w, x) > 0:
-					pass # w = w
+				classification = y * np.dot(w, x)
+				if classification > 0:
+					pass # correctly classified. w = w
 				else:
 					k += 1
 					linearly_separated = False
 					w = w + y * x
 			print(iter, "passes", k, "mistakes")
+
 		print("completed training with", iter, "iterations and", k, "mistakes")
 		return w, k, iter
 
@@ -240,16 +241,17 @@ class Perceptron():
 		feature_vector_list = self.compute_feature_vector_all(data)
 		data.seek(0)
 		label_list = self.compute_label_all(data)
-		n = len(feature_vector_list[0])
-		k = 0
+		n = len(feature_vector_list) # number of emails
+		k = 0 # number of misclassifications
 
-			for i in range(n):
-				x = np.array(feature_vector_list[i])
-				y = label_list[i]
-				if y * np.dot(w, x) > 0:
-					pass # w = w
-				else:
-					k += 1
+		for i in range(n):
+			x = np.array(feature_vector_list[i])
+			y = label_list[i]
+			classification = y * np.dot(w, x)
+			if classification > 0:
+				pass # classified correctly
+			else:
+				k += 1
 		print(k, "misclassified out of", n, "emails. Error rate:", 100*k/n, "%")
 		data.close()
 		return k/n
@@ -258,7 +260,7 @@ class Perceptron():
 
 def main():
 	# Create a perceptron of filename, N, threshold, iteration limit and debug option
-	p = Perceptron("spam_train.txt", 4000, 18, 40, False)
+	p = Perceptron("spam_train.txt", 4000, 17, 40, False)
 	p.preprocess()
 
 	# 1a) open training data and load significant features into features
@@ -278,8 +280,8 @@ def main():
 	if p.debug: print(w)
 
 	# 2b) Implement the function perceptron_error(w, data).
-	print("train", p.perceptron_error(p.filename_train))
-	print("validation", p.perceptron_error(p.filename_validation))
+	print("train", p.perceptron_error(w, p.filename_train))
+	print("validation", p.perceptron_error(w, p.filename_validation))
 
 	# 3) Validate on both training data and on validation data
 
