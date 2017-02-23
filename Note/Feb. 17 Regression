@@ -1,1 +1,17 @@
 Rule of thumb: If the ratio of weights to training examples is large, it can result in over fitting.
+
+Gradient Descent
+Local and Global extrema
+The gradient ∇f(w_1, w_2) = (∂f/∂w_1, ∂f/∂w_2) is the direction of steepest ascent.
+-∇f is the direction of steepest descent.
+Use this to examine optimization problems such as the email classification problem and the linear regression.
+
+Start with w = (0, 0, 0...) and calculate ∇J, and update w ← w - α∇J
+If α is small, we won't overshoot and can find a better fit but it may take longer.
+If α is big, we can save time but the extrema might not be accurate.
+
+Convex/concave functions have one local minimum/maximum and it's easier to deal with.
+def(convex fx) = "a line segment that connects any two points on the function lies above the function."
+f is convex if for all w¹ and w² ∈ R and λ ∈ [0,1] λf(w¹) + (λ-1)f(w²) ≥ f(λw¹ + (λ-1)w²)
+
+The Stochastic Gradient Descent reduces each step size from O(mn) to O(n) by changing the layering of the for loop, and while the overall algorithm might still be O(mn), we can take much less steps to reach a convergence.
