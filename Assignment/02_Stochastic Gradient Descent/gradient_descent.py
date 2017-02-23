@@ -48,15 +48,15 @@ class GradientDescent():
 
 		return filename
 
-	def gradient_descent(self, data, learning_rate=0.1, steps=100):
-		"""calculates w that minimizes error using gradient descent algorithm"""
-		def jw(m, normal_matrix, w):
-			"""calculates jw"""
-			jw = 0
-			for i in range(m):
-				jw += np.dot([1] + normal_matrix[i], w + [-1]) ** 2
-			return jw/m
+	def jw(self, m, normal_matrix, w):
+		"""calculates jw"""
+		jw = 0
+		for i in range(m):
+			jw += np.dot([1] + normal_matrix[i], w + [-1]) ** 2
+		return jw/m
 
+	def gradient_descent(self, data, learning_rate=0.1, steps=200):
+		"""calculates w that minimizes error using gradient descent algorithm"""
 		data.seek(0)
 		normal_matrix = []
 		for line in data:
@@ -66,11 +66,11 @@ class GradientDescent():
 		m = len(normal_matrix) # number of training examples = 47
 		n = len(normal_matrix[0]) # number of parameters = 3
 		w = [0 for i in range(n)] # Initialize w
-		if self.debug: print("w", w, "m", m, "n", n, "alpha", learning_rate)
+		if self.debug: print("GD algorithm: w", w, "m", m, "n", n, "alpha", learning_rate)
 		for s in range(steps):
 			# update w
-			# if self.debug and s % 10 == 0: print("step", s, ",", w[0], ",", w[1], ",", w[2])
-			if self.debug and s % 10 == 9: print("step", s+1, ",", jw(m, normal_matrix, w));
+			# if self.debug and s % 10 == 9: print("step", s+1, ",", w[0], ",", w[1], ",", w[2])
+			if self.debug and s % 10 == 9: print("step", s+1, ",", self.jw(m, normal_matrix, w));
 			temp_w = w + [-1] # [w0, w1, w2, -1]
 			for j in range(n):
 				sigma = 0
@@ -81,6 +81,49 @@ class GradientDescent():
 			w = temp_w[:-1]
 		return w
 
+	def stochastic_gradient_descent(self, data, learning_rate=0.1, steps=20):
+		"""calculates w that minimizes error using stochastic gradient descent algorithm"""
+		data.seek(0)
+		normal_matrix = []
+		for line in data:
+			line = [float(x) for x in line.strip().split(',')]
+			normal_matrix.append(line)
+
+		m = len(normal_matrix) # number of training examples = 47
+		n = len(normal_matrix[0]) # number of parameters = 3
+		w = [0 for i in range(n)] # Initialize w
+		if self.debug: print("SGD algorithm: w", w, "m", m, "n", n, "alpha", learning_rate)
+		for s in range(steps):
+			# update w
+			temp_w = w + [-1] # [w0, w1, w2, -1]
+			for i in range(m):
+				for j in range(n):
+					x = [1] + normal_matrix[i] # [1, x1, x2, y]
+					temp_w[j] -= (learning_rate / m) * np.dot(x, temp_w) * x[j]
+				w = temp_w[:-1]
+			if self.debug: print("step", s+1, ",", self.jw(m, normal_matrix, w));
+		return w
+
+	def predict(self, w, x):
+		"""predict y for trained value of w and hypothetical x
+
+		Assumption:
+		w = [w0, w1, w2]
+		x = [x1, x2]
+		"""
+		
+		n = len(x) # number of variables = 2
+
+		# normalize x
+		for i in range(n):
+			mean = self.mean_stddev_list[i]['mean']
+			stddev = self.mean_stddev_list[i]['stddev']
+			x[i] = (x[i] - mean) / stddev
+		x = [1] + x # x = [1, x1, x2]
+
+		prediction = np.dot(x, w) * self.mean_stddev_list[n]['stddev'] + self.mean_stddev_list[n]['mean']
+		return prediction
+
 def main():
 	# Create a gradient descent object
 	gd = GradientDescent("housing.txt", True)
@@ -88,22 +131,39 @@ def main():
 	# Test mean_stddev function
 	mean, stddev = gd.mean_stddev(np.array([1600,2400,1416,3000]))
 	result = "Passed" if (mean == 2104 and math.floor(stddev) == 635) else "Failed"
-	print("mean_stddev Test", result)
+	if gd.debug: print("mean_stddev Test", result)
 
 	# Normalize data
 	data = open(gd.filename, 'r')
 	normalized_file = gd.normalize(data)
 	data.close()
 
-	# Gradient Descent
 	data = open(normalized_file, 'r')
-	w = gd.gradient_descent(data, 0.3, 81)
-	print("final w:", w)
+
+	# Get w using Gradient Descent algorithm
+	data.seek(0)
+	w = gd.gradient_descent(data, 0.1, 80)
+	if gd.debug: print("Gradient Descent w:", w)
+
+	# Predict y for given x
+	x = [1650, 3]
+	if gd.debug: print("prediction for", x, ": ", end="")
+	prediction = gd.predict(w, x)
+	if gd.debug: print(prediction)
+
+
+	# Get w using Stochastic Gradient Descent algorithm
+	data.seek(0)
+	w = gd.stochastic_gradient_descent(data, 0.1, 3)
+	if gd.debug: print("Stochastic Gradient Descent w:", w)
+
+	# Predict y for given x
+	x = [1650, 3]
+	if gd.debug: print("prediction for", x, ": ", end="")
+	prediction = gd.predict(w, x)
+	if gd.debug: print(prediction)
+
 	data.close()
-
-	
-
-
 
 
 
