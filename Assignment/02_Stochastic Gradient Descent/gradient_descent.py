@@ -1,8 +1,7 @@
 import numpy as np
-import math
 
 class GradientDescent():
-	"""implementation of gradient descent algorithm for finding multi-variable non-linear regression"""
+	"""implementation of gradient descent & stochastic GD algorithm for finding multi-variable linear regression"""
 	def __init__(self, filename, debug=False):
 		self.filename = filename
 		self.mean_stddev_list = [] # list that saves {mean, stddev} dictionaries for each variable
@@ -49,11 +48,11 @@ class GradientDescent():
 		return filename
 
 	def jw(self, m, normal_matrix, w):
-		"""calculates jw"""
+		"""calculates J(w)"""
 		jw = 0
 		for i in range(m):
 			jw += np.dot([1] + normal_matrix[i], w + [-1]) ** 2
-		return jw/m
+		return jw/(2*m)
 
 	def gradient_descent(self, data, learning_rate=0.1, steps=200):
 		"""calculates w that minimizes error using gradient descent algorithm"""
@@ -65,18 +64,19 @@ class GradientDescent():
 
 		m = len(normal_matrix) # number of training examples = 47
 		n = len(normal_matrix[0]) # number of parameters = 3
-		w = [0 for i in range(n)] # Initialize w
+		w = [0] * n # Initialize w
 		if self.debug: print("GD algorithm: w", w, "m", m, "n", n, "alpha", learning_rate)
 		for s in range(steps):
 			# update w
 			# if self.debug and s % 10 == 9: print("step", s+1, ",", w[0], ",", w[1], ",", w[2])
 			if self.debug and s % 10 == 9: print("step", s+1, ",", self.jw(m, normal_matrix, w));
-			temp_w = w + [-1] # [w0, w1, w2, -1]
+			w.append(-1) # [w0, w1, w2, -1]
+			temp_w = w
 			for j in range(n):
 				sigma = 0
 				for i in range(m):
 					x = [1] + normal_matrix[i] # [1, x1, x2, y]
-					sigma += np.dot(x, temp_w) * x[j]
+					sigma += np.dot(x, w) * x[j]
 				temp_w[j] -= (learning_rate / m) * sigma
 			w = temp_w[:-1]
 		return w
@@ -91,16 +91,18 @@ class GradientDescent():
 
 		m = len(normal_matrix) # number of training examples = 47
 		n = len(normal_matrix[0]) # number of parameters = 3
-		w = [0 for i in range(n)] # Initialize w
+		w = [0] * n # Initialize w
 		if self.debug: print("SGD algorithm: w", w, "m", m, "n", n, "alpha", learning_rate)
 		for s in range(steps):
 			# update w
-			temp_w = w + [-1] # [w0, w1, w2, -1]
+			w.append(-1) # [w0, w1, w2, -1]
+			temp_w = w
 			for i in range(m):
+				x = [1] + normal_matrix[i] # [1, x1, x2, y]
 				for j in range(n):
-					x = [1] + normal_matrix[i] # [1, x1, x2, y]
-					temp_w[j] -= (learning_rate / m) * np.dot(x, temp_w) * x[j]
-				w = temp_w[:-1]
+					temp_w[j] -= (learning_rate / m) * np.dot(x, w) * x[j]
+				w = temp_w
+			w.pop()
 			if self.debug: print("step", s+1, ",", self.jw(m, normal_matrix, w));
 		return w
 
@@ -130,7 +132,7 @@ def main():
 
 	# Test mean_stddev function
 	mean, stddev = gd.mean_stddev(np.array([1600,2400,1416,3000]))
-	result = "Passed" if (mean == 2104 and math.floor(stddev) == 635) else "Failed"
+	result = "Passed" if (mean == 2104 and np.floor(stddev) == 635) else "Failed"
 	if gd.debug: print("mean_stddev Test", result)
 
 	# Normalize data
@@ -142,14 +144,14 @@ def main():
 
 	# Get w using Gradient Descent algorithm
 	data.seek(0)
-	w = gd.gradient_descent(data, 0.1, 80)
+	w = gd.gradient_descent(data, 0.3, 80)
 	if gd.debug: print("Gradient Descent w:", w)
 
 	# Predict y for given x
 	x = [1650, 3]
-	if gd.debug: print("prediction for", x, ": ", end="")
+	print("prediction for", x, ": ", end="")
 	prediction = gd.predict(w, x)
-	if gd.debug: print(prediction)
+	print(prediction)
 
 
 	# Get w using Stochastic Gradient Descent algorithm
@@ -159,13 +161,11 @@ def main():
 
 	# Predict y for given x
 	x = [1650, 3]
-	if gd.debug: print("prediction for", x, ": ", end="")
+	print("prediction for", x, ": ", end="")
 	prediction = gd.predict(w, x)
-	if gd.debug: print(prediction)
+	print(prediction)
 
 	data.close()
-
-
 
 if __name__ == "__main__":
 	main()
