@@ -3,10 +3,11 @@ import math
 
 class GradientDescent():
 	"""implementation of gradient descent algorithm for finding multi-variable non-linear regression"""
-	def __init__(self, filename):
+	def __init__(self, filename, debug=False):
 		self.filename = filename
 		self.mean_stddev_list = [] # list that saves {mean, stddev} dictionaries for each variable
-	
+		self.debug = debug
+
 	def mean_stddev(self, data):
 		"""calculates mean and standard deviation."""
 		m = len(data)
@@ -49,6 +50,13 @@ class GradientDescent():
 
 	def gradient_descent(self, data, learning_rate=0.1, steps=100):
 		"""calculates w that minimizes error using gradient descent algorithm"""
+		def jw(m, normal_matrix, w):
+			"""calculates jw"""
+			jw = 0
+			for i in range(m):
+				jw += np.dot([1] + normal_matrix[i], w + [-1]) ** 2
+			return jw/m
+
 		data.seek(0)
 		normal_matrix = []
 		for line in data:
@@ -58,10 +66,11 @@ class GradientDescent():
 		m = len(normal_matrix) # number of training examples = 47
 		n = len(normal_matrix[0]) # number of parameters = 3
 		w = [0 for i in range(n)] # Initialize w
-		print("w", w, "m", m, "n", n, "alpha", learning_rate)
+		if self.debug: print("w", w, "m", m, "n", n, "alpha", learning_rate)
 		for s in range(steps):
 			# update w
-			# if s % 10 == 0: print("step", s, ",", w[0], ",", w[1], ",", w[2])
+			# if self.debug and s % 10 == 0: print("step", s, ",", w[0], ",", w[1], ",", w[2])
+			if self.debug and s % 10 == 9: print("step", s+1, ",", jw(m, normal_matrix, w));
 			temp_w = w + [-1] # [w0, w1, w2, -1]
 			for j in range(n):
 				sigma = 0
@@ -70,22 +79,11 @@ class GradientDescent():
 					sigma += np.dot(x, temp_w) * x[j]
 				temp_w[j] -= (learning_rate / m) * sigma
 			w = temp_w[:-1]
-
-			# check j(w)
-			jw = 0
-			for i in range(m):
-				x = [1] + normal_matrix[i] # [1, x1, x2, y]
-				jw += np.dot(x, w + [-1]) ** 2
-			jw /= m
-			if s % 10 == 9: print("step", s+1, ",", jw)
-
-
-
 		return w
 
 def main():
 	# Create a gradient descent object
-	gd = GradientDescent("housing.txt")
+	gd = GradientDescent("housing.txt", True)
 
 	# Test mean_stddev function
 	mean, stddev = gd.mean_stddev(np.array([1600,2400,1416,3000]))
@@ -96,10 +94,14 @@ def main():
 	data = open(gd.filename, 'r')
 	normalized_file = gd.normalize(data)
 	data.close()
+
+	# Gradient Descent
 	data = open(normalized_file, 'r')
-	w = gd.gradient_descent(data, 0.3, 80)
+	w = gd.gradient_descent(data, 0.3, 81)
 	print("final w:", w)
 	data.close()
+
+	
 
 
 
