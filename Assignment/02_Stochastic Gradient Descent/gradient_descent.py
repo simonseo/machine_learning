@@ -1,4 +1,5 @@
 import numpy as np
+from random import shuffle
 
 class GradientDescent():
 	"""implementation of gradient descent & stochastic GD algorithm for finding multi-variable linear regression"""
@@ -104,6 +105,7 @@ class GradientDescent():
 				w = temp_w
 			w.pop()
 			if self.debug: print("step", s+1, ",", self.jw(m, normal_matrix, w));
+			shuffle(normal_matrix)
 		return w
 
 	def predict(self, w, x):
