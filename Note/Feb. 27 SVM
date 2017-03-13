@@ -1,0 +1,44 @@
+SVM was more popular then neural network but with more data Neural network is more useful.
+
+Support Vector Machines 
+1. Use optimization to find solution with largest margin (more conservative solution)
+2. Seek large margin separator while allowing for some test errors
+3. Use kernel trick to make large non-linear feature spaces computationally efficient
+
+Linear programming: a class of optimization problems that have a linear function as the cost /objective function and as constraints. Linear Programming problem is tractable
+Quadratic programming: a class of of problems that have quadratic functions.
+
+w · x = b is a hyperplane
+maximize δ subject to: y(i)(w·x(i)+b)/|w| ≥ δ
+
+This is hard to solve because of |w|
+If we assume |w|δ = 1, this optimization problem is equivalent to finding the minimum value of |w|. Thus we can change it to:
+minimize |w| subject to: y(i) (w"x(i) + b) ≥ 1
+
+You can change the intractable problem of finding the margin delta for w = w0 + w1 + ...
+but this can be converted to a tractable problem by having w^2 = w0^2 + w1^2 ...
+Minimize ||w||2 subject to: y(i)(w·x(i) + b) ≥ 1
+Derivation of distance between hyperplane w · x = b and x_i
+
+Hard margin of SVM: find w, minimize |w|^2 subject to y_i(w · x + b) ≥ 1 for all i. Hard margin because this does not allow finding w for a non separable data set.
+
+We cannot use gradient descent to find the optimal solution because gradient descent is designed for situations where there are no constraints. Instead we use quadratic programming algorithms
+
+Def (Support vectors) data points that fall on the margin lines (w · x + b) = ±1. Moving these points will change the w we get.
+(Non Support vectors) data points that are on the correct side of the margin line. Moving these points will not change w.
+
+Soft margin of SVM: find w, b, ξ, minimize w·w + CΣξ(i) subject to y_i(w · x + b) ≥ 1 - ξ(i) where ξ(i)≥0 for all i. This allows some singular points to exist. But using C, the slack penalty, 
+For given w and b, ξ(i) = max(0, 1-y(i)(w·x(i)+b))
+
+The Slack penalty suggests a tradeoff between the size of the margin and error. We want margin to be big and error to be small. If C is bigger, we'll get a very low error and small margin. If C is smaller, we'll get greater margin but possibly with more error.
+
+An equivalent problem is find w and b, minimizing w·w + CΣmax(0, 1-y(i)(w·x(i)+b)). Since this problem does not have constraints, we can use gradient descent. One minor problem is that the max function is not differentiable when the data is at the margin: 1-y(w·x+b)=0. How do we update if the gradient = 0??
+
+Use Lagrangian to find the dual. (use one lagrange multiplier α(i) per example)
+
+
+Multiclass SVM (ex 3 classes)
+Label y assumes either +, -, or 0. We learn 3 weights and 3 biases (w_+, w_-, w_0 ...) in O(nkm)
+Minimize w,b,ξ(w+ · w+) + (w- · w-) + (wo · wo) + C Σξ(i)
+subject to w_y(i)·x(i)+by(i) ≥ w_y’·x(i)+b_y’+ (1–ξ(i)) 
+for all y’ ≠ y(i), for all i
