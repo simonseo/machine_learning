@@ -1,0 +1,26 @@
+Lecture 8.3 — Neural Networks Representation | Model Representation-I — [ Andrew Ng ]
+https://www.youtube.com/watch?v=EVeqrPGfuCY?t=8m50s
+(8:50) 
+
+superscript refers to layer. (1) is input layer, (2) is hidden layer.
+
+a^(2)_1 is the output from the first unit in the hidden layer (2) 
+Θ^(1)_30 is the weight multiplied to the 0th input unit (bias) from the input layer(1) and added to the 3rd output unit in the next layer (hidden layer/layer 2).
+
+a^(1) = [x0, x1, x2, x3]
+Θ^(1) = [Θ_10, Θ_11, Θ_12, Θ_13,
+          Θ_20, Θ_21, Θ_22, Θ_23,
+          Θ_30, Θ_31, Θ_32, Θ_33]
+a^(2) =  g(Θ^(1) × a^(1))
+
+difference between logistic regression and neural network:
+logistic regression came up with the hypothesis function h(x) or f(x) from the input feature values x1, x2, x3. Neural network uses more complex values a(2)_1, a(2)_2, a(2)_3 that were calculated from the original features x1,x2,x3 and a bunch of parameters Θ and g. Andrew Ng refers to these new complex feature values as "Representation"
+Often these new representations mean something. They represent something. For example, in image data one representation might be the edge pixels 
+
+
+Lecture 8.5 — Neural Networks Representation | Examples And Intuitions-I — [ Andrew Ng]
+https://www.youtube.com/watch?v=0a19YIQgRL4?t=52s
+(0:52)
+
+Neural network easily solves Non-linear classification problems. We can't linearly separate the 4 data points given in the diagram: there is no line that separates the X from the O.
+We can separate them if we have a middle layer y1 = x1 XOR x2 and y2 = x1 XNOR x2 = NOT (x1 XOR x2)
