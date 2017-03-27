@@ -24,3 +24,10 @@ https://www.youtube.com/watch?v=0a19YIQgRL4?t=52s
 
 Neural network easily solves Non-linear classification problems. We can't linearly separate the 4 data points given in the diagram: there is no line that separates the X from the O.
 We can separate them if we have a middle layer y1 = x1 XOR x2 and y2 = x1 XNOR x2 = NOT (x1 XOR x2)
+
+Questions for prof:
+1. What is MLE and what is its relationship with Logistic Regression?
+2. The MLE cost function is something like log(smth) + (1-a) log(smth)
+3. in question 8, replace w with w+r? XOR replace w with r?
+4. What is forward/back propagation algorithm
+5. What is convolutional network
