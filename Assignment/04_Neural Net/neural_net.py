@@ -40,7 +40,7 @@ class NeuralNet():
 		return sum(map(mul, u, v))
 
 	def g(self, x1, x2):
-		'''logistic function of x1 and x2'''
+		'''sigmoid function of x1 and x2'''
 		z = -self.dot(x1, x2)
 		return 1/(1 + math.e**(z))
 
@@ -107,10 +107,10 @@ def main():
 	
 	print("Classified input image as:", nn.classifier_idx(data[0], w1, w2))
 
-	# print("error rate:", nn.error(data, label, nn.classifier_idx, w1, w2)) # error rate = 2.48%
+	print("error rate:", nn.error(data, label, nn.classifier_idx, w1, w2)) # error rate = 2.48%
 	
-	# outputs = [nn.forward_propagate(data[i], w1, w2) for i in range(len(data))]
-	# print("J:", nn.cost(outputs, label, nn._cost_MLE)) # J = 0.28762951217843125
+	outputs = [nn.forward_propagate(data[i], w1, w2) for i in range(len(data))]
+	print("J:", nn.cost(outputs, label, nn._cost_MLE)) # J = 0.28762951217843125
 
 if __name__ == '__main__':
 	main()
