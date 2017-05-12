@@ -5,9 +5,18 @@ import matplotlib.pyplot as plt
 ######### Read the data ##########
 
 faces = np.genfromtxt('faces.csv', dtype=int, delimiter=',')
+temp = np.empty([400, 64, 64])
+for i in range(400):
+	for j in range(64):
+		for k in range(64):
+			temp[i][k][j] = faces[i][64*j+k]
+faces = np.reshape(temp, (400, 64, 64))
+
 
 ######### Global Variable ##########
 
+FACE_COUNT = faces.shape[0]
+SHOW_PREVIOUS_WORK = False
 image_count = 0
 
 ######### Function that normalizes a vector x (i.e. |x|=1 ) #########
@@ -19,6 +28,20 @@ image_count = 0
 
 def normalize(U):
 	return U / LA.norm(U) 
+
+######### Function that wraps matplotlib.pyplot.imshow #########
+
+def spawn_imshow_wrapper():
+	image_count = 0
+	def show(image, title=None):
+		nonlocal image_count
+		image_count += 1
+		plt.figure(image_count)
+		plt.title('Image #{}'.format(image_count) if title is None else title)
+		plt.imshow(image, cmap=plt.cm.gray)
+	return show
+show = spawn_imshow_wrapper()
+
 
 ######### Display first face #########
 
@@ -33,11 +56,9 @@ def normalize(U):
 #	Display an image on the axes.
 #	Note: You need a matplotlib.pyplot.show() at the end to display all the figures.
 
-first_face = np.reshape(faces[0],(64,64),order='F')
-image_count+=1
-plt.figure(image_count)
-plt.title('First_face')
-plt.imshow(first_face,cmap=plt.cm.gray)
+if SHOW_PREVIOUS_WORK:
+	first_face = faces[0]
+	show(first_face, title='First_face')
 
 
 ########## display a random face ###########
@@ -49,6 +70,12 @@ plt.imshow(first_face,cmap=plt.cm.gray)
 #   Tuple of array dimensions.
 
 #### Your Code Here ####
+
+if SHOW_PREVIOUS_WORK:
+	random_mask = np.random.choice(FACE_COUNT, 5)
+	random_faces = faces[random_mask]
+	for face in random_faces:
+		show(face)
 
 
 
@@ -63,8 +90,9 @@ plt.imshow(first_face,cmap=plt.cm.gray)
 
 #### Your Code Here ####
 
-
-
+mean_face = np.mean(faces, axis=0)
+if SHOW_PREVIOUS_WORK:
+	show(mean_face, title='Mean Face of all 400 faces')
 
 ######### substract the mean from the face images and get the centralized data matrix A ###########
 
@@ -74,8 +102,9 @@ plt.imshow(first_face,cmap=plt.cm.gray)
 
 #### Your Code Here ####
 
-
-
+centered_faces = faces - np.repeat([mean_face], FACE_COUNT, axis=0)
+if SHOW_PREVIOUS_WORK:
+	show(centered_faces[0])
 
 ######### calculate the eigenvalues and eigenvectors of the covariance matrix #####################
 
@@ -135,3 +164,4 @@ plt.imshow(first_face,cmap=plt.cm.gray)
 
 
 
+plt.show()
