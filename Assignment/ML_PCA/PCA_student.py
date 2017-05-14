@@ -24,18 +24,21 @@ def normalize(U):
 
 ######### Function that wraps matplotlib.pyplot.imshow #########
 def spawn_imshow_wrapper():
-	image_count = 0
+	image_count = 1
 	def show_q(image, title=None, subplot=(0,0,0)):
 		nonlocal image_count
-		image_count += 1
 		if subplot == (0,0,0):
 			plt.figure(image_count)
 		else:
+			if subplot[2] == 1:
+				plt.figure(image_count)
 			plt.subplot(*subplot)
 		plt.axis('off')
 		plt.title('Image #{}'.format(image_count) if title is None else title)
 		plt.imshow(image, cmap=plt.cm.gray)
 	def show():
+		nonlocal image_count
+		image_count += 1
 		plt.show()
 	return show_q, show
 show_q, show = spawn_imshow_wrapper()
@@ -103,10 +106,12 @@ z = np.array([normalize(eig[i]['vec']) for i in range(FACE_COUNT)])
 ########## Display the first 10 principal components ##################
 
 if SHOW_PREVIOUS_WORK:
-	for i in range(10):
+	k = 10
+	for i in range(k):
 		pc_face = z[i]
 		pc_face = square(pc_face)
-		show_q(pc_face, title='Principal Component #{}'.format(i+1))
+		show_q(pc_face, subplot=((k+4)//5, 5, i+1), title='PC #{}'.format(i+1))
+	plt.subplots_adjust(top=0.9, bottom=0.05, left=0.05, right=0.95, hspace=0.3, wspace=0.5)
 	show()
 
 
@@ -115,12 +120,12 @@ if SHOW_PREVIOUS_WORK:
 
 if SHOW_PREVIOUS_WORK:
 	first_face = flat(centered_faces[0]) # (4096)
-	show_q(square(faces[0]), title='first face')
+	show_q(square(faces[0]), subplot=(1,2,1), title='first face')
 	U = z[:2] #(2, 4096)
 	weights = np.matmul(U, first_face.T) # (2, 1)
 	reconst_face = flat(mean_face) + np.matmul(U.T, weights) 
 
-	show_q(square(reconst_face), title='first face reshaped')
+	show_q(square(reconst_face), subplot=(1,2,2), title='reshaped')
 	show()
 
 
@@ -139,8 +144,8 @@ if SHOW_PREVIOUS_WORK:
 			pc_face = flat(z[i])
 			reconst_face += np.dot(face, pc_face) * pc_face
 			if i+1 in k_list:
-				show_q(square(reconst_face), subplot=(l//5 + 1, 5, k_list.index(i+1)+1), title='{} PCs'.format(i+1))
-		show_q(square(face) + mean_face, subplot=(l//5 + 1, 5, l+1), title='Original face')
+				show_q(square(reconst_face), subplot=((l+4)//5, 5, k_list.index(i+1)+1), title='{} PCs'.format(i+1))
+		show_q(square(face) + mean_face, subplot=((l+4)//5, 5, l+1), title='Original face')
 		plt.subplots_adjust(top=0.9, bottom=0.05, left=0.05, right=0.95, hspace=0.3, wspace=0.5)
 		show()
 
