@@ -1,3 +1,9 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*- 
+# @File Name: PCA_Simon_ms9144.py
+# @Created:   2017-05-12 15:44:15  Simon Myunggun Seo (simon.seo@nyu.edu) 
+# @Updated:   2017-05-14 19:22:25  Simon Seo (simon.seo@nyu.edu)
+
 import numpy as np
 from numpy import linalg as LA
 import matplotlib.pyplot as plt
