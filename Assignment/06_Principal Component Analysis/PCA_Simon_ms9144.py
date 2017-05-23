@@ -2,16 +2,16 @@
 # -*- coding: utf-8 -*- 
 # @File Name: PCA_Simon_ms9144.py
 # @Created:   2017-05-12 15:44:15  Simon Myunggun Seo (simon.seo@nyu.edu) 
-# @Updated:   2017-05-14 19:22:25  Simon Seo (simon.seo@nyu.edu)
+# @Updated:   2017-05-15 11:12:46  Simon Seo (simon.seo@nyu.edu)
 
 import numpy as np
 from numpy import linalg as LA
 import matplotlib.pyplot as plt
 
-######### Global Variables ##########
+######### Global Variables #########
 
 FACE_COUNT = 400
-SHOW_PREVIOUS_WORK = True
+SHOW_PREVIOUS_WORK = False
 
 
 
@@ -159,12 +159,13 @@ if SHOW_PREVIOUS_WORK:
 
 ######### Plot proportion of variance of all the PCs ###############
 
-if SHOW_PREVIOUS_WORK:
+if SHOW_PREVIOUS_WORK or True:
 	# data
-	eigvals = np.array([eig[i]['val'] for i in range(FACE_COUNT)]) # eig was sorted above
-	x = range(FACE_COUNT)
+	eigvals = np.array([e['val'] for e in eig[:-1]]) # eig was sorted above
+	print(eigvals[FACE_COUNT-5:], sum(eigvals))
+	x = range(FACE_COUNT - 1)
 	y = eigvals/sum(eigvals)
-	y_comp = [-(0.25/400)*i + 0.25 for i in range(1,401)]
+	y_comp = [-(0.25/400)*i + 0.25 for i in range(0,FACE_COUNT - 1)]
 
 	# linear
 	plt.subplot(211)
@@ -179,7 +180,6 @@ if SHOW_PREVIOUS_WORK:
 	plt.subplot(212)
 	plt.plot(x, y, label='Variance proportion')
 	plt.plot(x, y_comp, label=r'Reference: $0.25x + 400y = 100$')
-	plt.legend()
 	plt.yscale('log')
 	plt.title('Proportion of variance of all {} PCs (log)'.format(FACE_COUNT))
 	plt.grid(True)
